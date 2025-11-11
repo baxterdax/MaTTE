@@ -450,15 +450,25 @@ pm2 restart matte-api
 
 ### Database Migrations
 
-When schema changes are needed:
+To manage database schema changes, migration scripts are located in the `db/migrations/` directory. Follow these steps to apply migrations:
 
-```bash
-# Backup database
-docker exec postgres-container pg_dump -U postgres matte > matte_backup_$(date +%Y%m%d).sql
+1. **Navigate to the migrations directory**
+   ```bash
+   cd db/migrations
+   ```
 
-# Apply new migrations
-docker exec -i postgres-container psql -U postgres -d matte < db/migrations/001_new_migration.sql
-```
+2. **Apply the migrations**
+   Use the `psql` command to apply each migration in order:
+   ```bash
+   psql $DATABASE_URL < 001_initial_schema.sql
+   ```
+
+   Replace `$DATABASE_URL` with your PostgreSQL connection string.
+
+3. **Verify the changes**
+   Check the database to ensure the schema has been updated correctly.
+
+Repeat these steps for any new migration scripts added in the future.
 
 ### Backup Strategy
 
