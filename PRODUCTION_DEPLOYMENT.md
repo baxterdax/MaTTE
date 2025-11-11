@@ -1,8 +1,8 @@
 # MaTTE Production Deployment Guide
 
-## Server: sprig@23.80.88.88 (Port 1314)
+## Production Server Deployment
 
-This guide details how to deploy MaTTE to your production server alongside existing services (Supabase, Traefik, etc.) using a custom port to avoid conflicts.
+This guide details how to deploy MaTTE to your production server alongside existing services using Docker and Traefik reverse proxy.
 
 ---
 
@@ -10,11 +10,11 @@ This guide details how to deploy MaTTE to your production server alongside exist
 
 ### Existing Services
 - **Traefik**: Reverse proxy on ports 80, 443, 8082
-- **PostgreSQL**: Running in `supabase-db` container (port 5432)
-- **Redis**: Running in `shared-redis` container (port 6379)
-- **Node.js**: v20.19.5
-- **Docker**: v28.5.1
-- **Other Apps**: restoreaze, sprigworks (using internal port 3000)
+- **PostgreSQL**: Running in Docker container (port 5432)
+- **Redis**: Running in Docker container (port 6379)
+- **Node.js**: v20+
+- **Docker**: Latest version
+- **Other Apps**: Various applications using internal port 3000
 
 ### Available Ports
 - Port 3000: Internally used by other containers
@@ -28,7 +28,7 @@ This guide details how to deploy MaTTE to your production server alongside exist
 
 ```bash
 # SSH into production server
-ssh -p1314 sprig@23.80.88.88
+ssh -pPORT user@your-server-ip
 
 # Create project directory
 mkdir -p ~/apps/matte
@@ -43,12 +43,12 @@ git clone https://github.com/YOUR_USERNAME/matte.git .
 
 # Option B: Transfer files from local machine
 # (Run this on your local machine)
-rsync -avz -e "ssh -p1314" \
+rsync -avz -e "ssh -pPORT" \
   --exclude 'node_modules' \
   --exclude 'dist' \
   --exclude '.git' \
-  /home/nick/Projects/MaTTE/ \
-  sprig@23.80.88.88:~/apps/matte/
+  /path/to/local/matte/ \
+  user@your-server-ip:~/apps/matte/
 ```
 
 ### 3. Configure Environment Variables
@@ -85,7 +85,7 @@ chmod 600 .env
 
 ```bash
 # Connect to PostgreSQL container
-docker exec -it supabase-db psql -U postgres
+docker exec -it postgres-container psql -U postgres
 
 # In PostgreSQL prompt:
 CREATE DATABASE matte;
@@ -101,7 +101,7 @@ GRANT ALL PRIVILEGES ON DATABASE matte TO matte_app;
 
 ```bash
 # Apply schema
-docker exec -i supabase-db psql -U postgres -d matte < db/schema.sql
+docker exec -i postgres-container psql -U postgres -d matte < db/schema.sql
 ```
 
 ### 6. Deploy with Docker (Recommended)
@@ -414,17 +414,17 @@ tail -f ~/apps/matte/logs/error.log
 
 ```bash
 # Check database connections
-docker exec supabase-db psql -U postgres -d matte -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'matte';"
+docker exec postgres-container psql -U postgres -d matte -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'matte';"
 
 # Check table sizes
-docker exec supabase-db psql -U postgres -d matte -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) FROM pg_tables WHERE schemaname = 'public';"
+docker exec postgres-container psql -U postgres -d matte -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) FROM pg_tables WHERE schemaname = 'public';"
 ```
 
 ### Check Email Logs
 
 ```bash
-# View sent emails (via psql)
-docker exec supabase-db psql -U postgres -d matte -c "SELECT id, to_email, subject, status, created_at FROM email_logs ORDER BY created_at DESC LIMIT 10;"
+# Check email logs (via psql)
+docker exec postgres-container psql -U postgres -d matte -c "SELECT id, to_email, subject, status, created_at FROM email_logs ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ---
@@ -453,11 +453,11 @@ pm2 restart matte-api
 When schema changes are needed:
 
 ```bash
-# Backup first
-docker exec supabase-db pg_dump -U postgres matte > matte_backup_$(date +%Y%m%d).sql
+# Backup database
+docker exec postgres-container pg_dump -U postgres matte > matte_backup_$(date +%Y%m%d).sql
 
 # Apply new migrations
-docker exec -i supabase-db psql -U postgres -d matte < db/migrations/001_new_migration.sql
+docker exec -i postgres-container psql -U postgres -d matte < db/migrations/001_new_migration.sql
 ```
 
 ### Backup Strategy
@@ -471,7 +471,7 @@ mkdir -p $BACKUP_DIR
 DATE=$(date +%Y%m%d_%H%M%S)
 
 # Backup database
-docker exec supabase-db pg_dump -U postgres matte | gzip > $BACKUP_DIR/matte_db_$DATE.sql.gz
+docker exec postgres-container pg_dump -U postgres matte | gzip > $BACKUP_DIR/matte_db_$DATE.sql.gz
 
 # Backup logs
 tar -czf $BACKUP_DIR/matte_logs_$DATE.tar.gz logs/
@@ -496,10 +496,10 @@ chmod +x ~/apps/matte/backup.sh
 
 ```bash
 # Check if PostgreSQL is running
-docker ps | grep supabase-db
+docker ps | grep postgres
 
 # Test connection
-docker exec supabase-db psql -U postgres -c "SELECT version();"
+docker exec postgres-container psql -U postgres -c "SELECT version();"
 
 # Verify DATABASE_URL in .env
 # Should be: postgresql://user:pass@172.17.0.1:5432/matte
@@ -570,8 +570,8 @@ pm2 restart matte-api
 ## 📝 Quick Reference
 
 ### Important Files
-- `/home/sprig/apps/matte/.env` - Environment configuration
-- `/home/sprig/apps/matte/logs/` - Application logs
+- `~/apps/matte/.env` - Environment configuration
+- `~/apps/matte/logs/` - Application logs
 - `/etc/traefik/dynamic/matte.yml` - Traefik config (if using file-based)
 
 ### Common Commands
@@ -638,7 +638,7 @@ docker exec -it matte-api sh
 ## 🎯 Next Steps
 
 1. **Choose a domain**: `matte.yourdomain.com` or path-based routing
-2. **Update DNS**: Point subdomain to `23.80.88.88`
+2. **Update DNS**: Point subdomain to your server IP
 3. **Deploy**: Follow steps 1-7 above
 4. **Configure Traefik**: Use Method 1 or 2
 5. **Test**: Send test emails

@@ -13,7 +13,7 @@ Your MTE-API **successfully sent real emails** using SMTP credentials:
 
 ### Option 1: Quick API Test (No Database Required)
 
-You can test the API immediately with your sprig.works credentials:
+You can test the API immediately with your own SMTP credentials:
 
 ```bash
 # Create a test tenant with your credentials
