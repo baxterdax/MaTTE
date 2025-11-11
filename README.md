@@ -29,7 +29,7 @@ Before you begin, ensure you have:
 1. **Clone the Repository**
    ```bash
    git clone <repository-url>
-   cd matte
+   cd MuTTE
    ```
 
 2. **Install Dependencies**
@@ -45,8 +45,8 @@ Before you begin, ensure you have:
 
 4. **Initialize the Database**
    ```bash
-   createdb mattedb
-   psql mattedb < db/schema.sql
+   createdb muttedb
+   psql muttedb < db/schema.sql
    ```
 
 5. **Start the Server**
