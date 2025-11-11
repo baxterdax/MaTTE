@@ -1,5 +1,4 @@
 import request from 'supertest';
-import app from '../../src/index';
 
 jest.mock('../../src/db/pool', () => {
   const queries: any[] = [];
@@ -31,10 +30,12 @@ jest.mock('nodemailer', () => ({
 
 describe('POST /send success', () => {
   let encrypt: (s: string) => string;
+  let app: any;
   beforeAll(async () => {
     process.env.ENCRYPTION_KEY = '12345678901234567890123456789012';
     jest.resetModules();
     encrypt = (await import('../../src/utils/encryption')).encrypt;
+    app = (await import('../../src/index')).default;
   });
 
   it('sends and logs email with variables and attachments', async () => {

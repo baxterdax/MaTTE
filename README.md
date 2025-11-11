@@ -2,7 +2,8 @@
 
 <!-- Note: Update owner/repo if repository slug changes -->
 ![CI](https://github.com/baxterdax/MuTTE/actions/workflows/ci.yml/badge.svg)
-![CodeQL](https://img.shields.io/github/actions/workflow/status/baxterdax/MuTTE/ci.yml?label=codeql)
+![CodeQL](https://github.com/baxterdax/MuTTE/actions/workflows/codeql.yml/badge.svg)
+![Coverage](https://codecov.io/gh/baxterdax/MuTTE/branch/main/graph/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
 MuTTE (Multi-Tenant Transactional Email API) is your go-to solution for managing transactional emails across multiple clients. Whether you're an agency or a developer, MuTTE simplifies email sending while ensuring security and scalability.
@@ -109,6 +110,7 @@ X-API-Key: tenant_api_key
 ```
 
 For the full API, see `docs/api.md` and `docs/sending-emails.md`. Swagger annotations are included inline.
+For upcoming features, see `docs/rfcs/` and `ROADMAP.md`.
 
 ## Need Help?
 
