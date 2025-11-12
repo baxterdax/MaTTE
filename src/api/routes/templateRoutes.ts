@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, authenticateAdmin } from '../../middleware/auth';
+import { authenticateAdmin } from '../../middleware/auth';
 import rateLimit from 'express-rate-limit';
 import {
   createTemplate,

@@ -3,8 +3,7 @@ import app from '../../src/index';
 import { pool, query } from '../../src/db/pool';
 
 describe('Template API Integration Tests', () => {
-  let adminApiKey: string;
-  let tenantApiKey: string;
+  // adminApiKey is provided via X-Admin-Key header directly in requests
   let tenantId: string;
   let testCounter = 0;
 
@@ -20,8 +19,7 @@ describe('Template API Integration Tests', () => {
       ['Test Tenant', 'test-tenant-key', 'smtp.test.com', '587', 'user@test.com', 'password', 'from@test.com']
     );
     
-    tenantId = tenantResult.rows[0].id.toString();
-    tenantApiKey = tenantResult.rows[0].api_key;
+  tenantId = tenantResult.rows[0].id.toString();
   });
 
   afterAll(async () => {
@@ -127,7 +125,6 @@ describe('Template API Integration Tests', () => {
   });
 
   describe('GET /admin/templates/:tenantId/:slug', () => {
-    let templateId: string;
 
     beforeEach(async () => {
       // Create a test template
@@ -140,13 +137,13 @@ describe('Template API Integration Tests', () => {
         subjectTemplate: 'Test Subject'
       };
 
-      const response = await request(app)
+      await request(app)
         .post('/admin/templates')
         .set('X-Admin-Key', 'test-admin-key')
         .send(templateData)
         .expect(201);
 
-      templateId = response.body.templateId;
+      // created template is fetched by slug below; no need to store templateId here
     });
 
     it('should retrieve template by tenantId and slug', async () => {
