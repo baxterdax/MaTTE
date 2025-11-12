@@ -7,6 +7,7 @@ import { logger } from './utils/logger';
 import tenantsRouter from './api/routes/tenants';
 import sendRouter from './api/routes/send';
 import demoRouter from './api/routes/demo';
+import templateRouter from './api/routes/templateRoutes';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.get('/health', (_req, res) => {
 app.use('/tenants', tenantsRouter);
 app.use('/send', sendRouter);
 app.use('/demo', demoRouter);
+app.use('/', templateRouter);
 
 // Error handling
 app.use(errorHandler);

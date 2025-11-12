@@ -12,4 +12,6 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   verbose: true,
+  globalSetup: '<rootDir>/jest.setup.js',
+  globalTeardown: '<rootDir>/jest.teardown.js',
 };

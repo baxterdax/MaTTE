@@ -8,6 +8,11 @@ export interface WebhookEvent {
   subject: string;
   timestamp: string;
   error?: string;
+  template?: {
+    slug: string;
+    version: number;
+    rendered?: boolean;
+  };
 }
 
 export async function sendWebhook(url: string, payload: WebhookEvent) {

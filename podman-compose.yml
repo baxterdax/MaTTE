@@ -4,10 +4,10 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:16-alpine
-    container_name: matte-db
+    container_name: mutte-db
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-mattedb}
-      POSTGRES_USER: ${POSTGRES_USER:-matte}
+      POSTGRES_DB: ${POSTGRES_DB:-muttedb}
+      POSTGRES_USER: ${POSTGRES_USER:-mutte}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "5432:5432"
@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     networks:
-      - matte-network
+      - mutte-network
     restart: unless-stopped
 
   # MTE-API Application
@@ -23,11 +23,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: matte-api
+    container_name: mutte-api
     environment:
       PORT: 3000
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-matte}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-mattedb}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mutte}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-muttedb}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-your_32_character_encryption_key_here}
       ADMIN_API_KEY: ${ADMIN_API_KEY:-changeme}
       MAX_REQUESTS_PER_MINUTE: ${MAX_REQUESTS_PER_MINUTE:-100}
@@ -35,12 +35,12 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - matte-network
+      - mutte-network
     restart: unless-stopped
 
 volumes:
   postgres_data:
 
 networks:
-  matte-network:
+  mutte-network:
     driver: bridge

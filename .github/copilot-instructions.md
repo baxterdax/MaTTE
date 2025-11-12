@@ -1,7 +1,7 @@
-# MaTTE - Multi-Tenant Transactional Email API
+# MuTTE - Multi-Tenant Transactional Email API
 
 ## Project Overview
-MaTTE is a production-ready transactional email API designed for multi-tenant environments. It provides robust email sending capabilities with support for templating, delivery tracking, webhook notifications, rate limiting, and analytics.
+MuTTE is a production-ready transactional email API designed for multi-tenant environments. It provides robust email sending capabilities with support for templating, delivery tracking, webhook notifications, rate limiting, and analytics.
 
 ## Technology Stack
 - **Backend**: Node.js with TypeScript

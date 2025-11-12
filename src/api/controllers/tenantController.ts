@@ -8,7 +8,7 @@ import { AppError } from '../../middleware/errorHandler';
  * Generate a secure API key for a tenant
  */
 function generateApiKey(): string {
-  return 'matte_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+  return 'mutte_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
 }
 
 /**

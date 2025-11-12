@@ -18,7 +18,7 @@ This guide details how to deploy MuTTE to your production server alongside exist
 
 ### Available Ports
 - Port 3000: Internally used by other containers
-- **Recommended for MaTTE**: Port 3001 or 3002 (external)
+- **Recommended for MuTTE**: Port 3001 or 3002 (external)
 
 ---
 
@@ -31,15 +31,15 @@ This guide details how to deploy MuTTE to your production server alongside exist
 ssh -pPORT user@your-server-ip
 
 # Create project directory
-mkdir -p ~/apps/matte
-cd ~/apps/matte
+mkdir -p ~/apps/mutte
+cd ~/apps/mutte
 ```
 
 ### 2. Clone or Transfer the Repository
 
 ```bash
 # Option A: Clone from GitHub (once repo is created)
-git clone https://github.com/YOUR_USERNAME/matte.git .
+git clone https://github.com/YOUR_USERNAME/mutte.git .
 
 # Option B: Transfer files from local machine
 # (Run this on your local machine)
@@ -47,8 +47,8 @@ rsync -avz -e "ssh -pPORT" \
   --exclude 'node_modules' \
   --exclude 'dist' \
   --exclude '.git' \
-  /path/to/local/matte/ \
-  user@your-server-ip:~/apps/matte/
+  /path/to/local/mutte/ \
+  user@your-server-ip:~/apps/mutte/
 ```
 
 ### 3. Configure Environment Variables
@@ -56,12 +56,12 @@ rsync -avz -e "ssh -pPORT" \
 ```bash
 # Create .env file
 cat > .env << 'EOF'
-# MaTTE Environment Configuration
+# MuTTE Environment Configuration
 PORT=3001
 NODE_ENV=production
 
 # Use existing PostgreSQL (create separate database)
-DATABASE_URL=postgresql://postgres:YOUR_POSTGRES_PASSWORD@172.17.0.1:5432/matte
+DATABASE_URL=postgresql://postgres:YOUR_POSTGRES_PASSWORD@172.17.0.1:5432/mutte
 
 # Generate encryption key: openssl rand -base64 32
 ENCRYPTION_KEY=REPLACE_WITH_32_CHAR_KEY
@@ -88,20 +88,20 @@ chmod 600 .env
 docker exec -it postgres-container psql -U postgres
 
 # In PostgreSQL prompt:
-CREATE DATABASE matte;
-CREATE USER matte_app WITH PASSWORD 'SECURE_PASSWORD_HERE';
-GRANT ALL PRIVILEGES ON DATABASE matte TO matte_app;
+CREATE DATABASE mutte;
+CREATE USER mutte_app WITH PASSWORD 'SECURE_PASSWORD_HERE';
+GRANT ALL PRIVILEGES ON DATABASE mutte TO mutte_app;
 \q
 
 # Update DATABASE_URL in .env with the new credentials:
-# DATABASE_URL=postgresql://matte_app:SECURE_PASSWORD_HERE@172.17.0.1:5432/matte
+# DATABASE_URL=postgresql://mutte_app:SECURE_PASSWORD_HERE@172.17.0.1:5432/mutte
 ```
 
 ### 5. Initialize Database Schema
 
 ```bash
 # Apply schema
-docker exec -i postgres-container psql -U postgres -d matte < db/schema.sql
+docker exec -i postgres-container psql -U postgres -d mutte < db/schema.sql
 ```
 
 ### 6. Deploy with Docker (Recommended)
@@ -110,34 +110,34 @@ docker exec -i postgres-container psql -U postgres -d matte < db/schema.sql
 
 ```bash
 # Build the Docker image
-docker build -t matte:latest .
+docker build -t mutte:latest .
 
 # Run the container
 docker run -d \
-  --name matte-api \
+  --name mutte-api \
   --restart unless-stopped \
   --network host \
   --env-file .env \
   -v $(pwd)/logs:/app/logs \
-  matte:latest
+  mutte:latest
 
 # Check logs
-docker logs -f matte-api
+docker logs -f mutte-api
 ```
 
 #### Option B: Add to Existing Docker Compose
 
-Create `docker-compose.matte.yml`:
+Create `docker-compose.mutte.yml`:
 
 ```yaml
 version: '3.8'
 
 services:
-  matte-api:
+  mutte-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: matte-api
+    container_name: mutte-api
     restart: unless-stopped
     env_file:
       - .env
@@ -148,15 +148,15 @@ services:
     labels:
       # Traefik configuration
       - "traefik.enable=true"
-      - "traefik.http.routers.matte.rule=Host(`matte.yourdomain.com`)"
-      - "traefik.http.routers.matte.entrypoints=websecure"
-      - "traefik.http.routers.matte.tls.certresolver=letsencrypt"
-      - "traefik.http.services.matte.loadbalancer.server.port=3001"
+      - "traefik.http.routers.mutte.rule=Host(`mutte.yourdomain.com`)"
+      - "traefik.http.routers.mutte.entrypoints=websecure"
+      - "traefik.http.routers.mutte.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mutte.loadbalancer.server.port=3001"
       
       # Optional: Path-based routing
-      # - "traefik.http.routers.matte.rule=Host(`yourdomain.com`) && PathPrefix(`/api/email`)"
-      # - "traefik.http.middlewares.matte-strip.stripprefix.prefixes=/api/email"
-      # - "traefik.http.routers.matte.middlewares=matte-strip@docker"
+      # - "traefik.http.routers.mutte.rule=Host(`yourdomain.com`) && PathPrefix(`/api/email`)"
+      # - "traefik.http.middlewares.mutte-strip.stripprefix.prefixes=/api/email"
+      # - "traefik.http.routers.mutte.middlewares=mutte-strip@docker"
     networks:
       - default
 
@@ -169,7 +169,7 @@ networks:
 Deploy:
 
 ```bash
-docker-compose -f docker-compose.matte.yml up -d
+docker-compose -f docker-compose.mutte.yml up -d
 ```
 
 ### 7. Direct Node.js Deployment (Alternative)
@@ -188,7 +188,7 @@ npm install -g pm2
 
 # Start the application
 pm2 start dist/index.js \
-  --name matte-api \
+  --name mutte-api \
   --env production \
   --max-memory-restart 500M
 
@@ -199,7 +199,7 @@ pm2 save
 pm2 startup
 
 # View logs
-pm2 logs matte-api
+pm2 logs mutte-api
 ```
 
 ---
@@ -211,35 +211,35 @@ pm2 logs matte-api
 If using Docker deployment, Traefik will automatically discover the service via labels in the docker-compose file above.
 
 **Required:**
-- Update `matte.yourdomain.com` to your actual subdomain
+- Update `mutte.yourdomain.com` to your actual subdomain
 - Ensure DNS points to your server
 - Verify Traefik network name matches your setup
 
 ### Method 2: Dynamic Configuration File
 
-Create `/etc/traefik/dynamic/matte.yml`:
+Create `/etc/traefik/dynamic/mutte.yml`:
 
 ```yaml
 http:
   routers:
-    matte:
-      rule: "Host(`matte.yourdomain.com`)"
-      service: matte-service
+    mutte:
+      rule: "Host(`mutte.yourdomain.com`)"
+      service: mutte-service
       entryPoints:
         - websecure
       tls:
         certResolver: letsencrypt
       middlewares:
-        - matte-ratelimit
+        - mutte-ratelimit
 
   services:
-    matte-service:
+    mutte-service:
       loadBalancer:
         servers:
           - url: "http://localhost:3001"
 
   middlewares:
-    matte-ratelimit:
+    mutte-ratelimit:
       rateLimit:
         average: 100
         burst: 50
@@ -254,29 +254,29 @@ docker restart traefik
 
 ### Method 3: Path-Based Routing
 
-If you want MaTTE under a path like `yourdomain.com/api/email`:
+If you want MuTTE under a path like `yourdomain.com/api/email`:
 
 ```yaml
 http:
   routers:
-    matte:
+    mutte:
       rule: "Host(`yourdomain.com`) && PathPrefix(`/api/email`)"
-      service: matte-service
+      service: mutte-service
       entryPoints:
         - websecure
       middlewares:
-        - matte-strip-prefix
+        - mutte-strip-prefix
       tls:
         certResolver: letsencrypt
 
   services:
-    matte-service:
+    mutte-service:
       loadBalancer:
         servers:
           - url: "http://localhost:3001"
 
   middlewares:
-    matte-strip-prefix:
+    mutte-strip-prefix:
       stripPrefix:
         prefixes:
           - "/api/email"
@@ -290,12 +290,12 @@ http:
 
 ```bash
 # Docker
-docker ps | grep matte
-docker logs matte-api
+docker ps | grep mutte
+docker logs mutte-api
 
 # PM2
 pm2 status
-pm2 logs matte-api
+pm2 logs mutte-api
 
 # Check port
 netstat -tuln | grep 3001
@@ -310,7 +310,7 @@ ss -tuln | grep 3001
 curl http://localhost:3001/health
 
 # Via Traefik (if configured)
-curl https://matte.yourdomain.com/health
+curl https://mutte.yourdomain.com/health
 ```
 
 Expected response:
@@ -351,9 +351,9 @@ curl -X POST http://localhost:3001/send \
   -H "X-API-Key: TENANT_API_KEY_FROM_ABOVE" \
   -d '{
     "to": "recipient@example.com",
-    "subject": "Test Email from MaTTE",
-    "htmlBody": "<h1>Success!</h1><p>MaTTE is working on production.</p>",
-    "textBody": "Success! MaTTE is working on production."
+    "subject": "Test Email from MuTTE",
+    "htmlBody": "<h1>Success!</h1><p>MuTTE is working on production.</p>",
+    "textBody": "Success! MuTTE is working on production."
   }'
 ```
 
@@ -374,7 +374,7 @@ sudo ufw status
 
 ```bash
 # Protect .env file
-chmod 600 ~/apps/matte/.env
+chmod 600 ~/apps/mutte/.env
 
 # Rotate API keys periodically
 # Update ADMIN_API_KEY and ENCRYPTION_KEY as needed
@@ -400,31 +400,31 @@ Additional rate limiting can be added in Traefik config.
 
 ```bash
 # Docker logs
-docker logs -f matte-api --tail 100
+docker logs -f mutte-api --tail 100
 
 # PM2 logs
-pm2 logs matte-api
+pm2 logs mutte-api
 
 # Application logs
-tail -f ~/apps/matte/logs/combined.log
-tail -f ~/apps/matte/logs/error.log
+tail -f ~/apps/mutte/logs/combined.log
+tail -f ~/apps/mutte/logs/error.log
 ```
 
 ### Database Monitoring
 
 ```bash
 # Check database connections
-docker exec postgres-container psql -U postgres -d matte -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'matte';"
+docker exec postgres-container psql -U postgres -d mutte -c "SELECT count(*) FROM pg_stat_activity WHERE datname = 'mutte';"
 
 # Check table sizes
-docker exec postgres-container psql -U postgres -d matte -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) FROM pg_tables WHERE schemaname = 'public';"
+docker exec postgres-container psql -U postgres -d mutte -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) FROM pg_tables WHERE schemaname = 'public';"
 ```
 
 ### Check Email Logs
 
 ```bash
 # Check email logs (via psql)
-docker exec postgres-container psql -U postgres -d matte -c "SELECT id, to_email, subject, status, created_at FROM email_logs ORDER BY created_at DESC LIMIT 10;"
+docker exec postgres-container psql -U postgres -d mutte -c "SELECT id, to_email, subject, status, created_at FROM email_logs ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ---
@@ -434,18 +434,18 @@ docker exec postgres-container psql -U postgres -d matte -c "SELECT id, to_email
 ### Update Application
 
 ```bash
-cd ~/apps/matte
+cd ~/apps/mutte
 
 # Pull latest changes (if using git)
 git pull origin main
 
 # Rebuild and restart (Docker)
-docker-compose -f docker-compose.matte.yml down
-docker-compose -f docker-compose.matte.yml up -d --build
+docker-compose -f docker-compose.mutte.yml down
+docker-compose -f docker-compose.mutte.yml up -d --build
 
 # Or restart PM2
 npm run build
-pm2 restart matte-api
+pm2 restart mutte-api
 ```
 
 ### Database Migrations
@@ -474,28 +474,28 @@ Repeat these steps for any new migration scripts added in the future.
 
 ```bash
 # Create backup script
-cat > ~/apps/matte/backup.sh << 'EOF'
+cat > ~/apps/mutte/backup.sh << 'EOF'
 #!/bin/bash
-BACKUP_DIR=~/backups/matte
+BACKUP_DIR=~/backups/mutte
 mkdir -p $BACKUP_DIR
 DATE=$(date +%Y%m%d_%H%M%S)
 
 # Backup database
-docker exec postgres-container pg_dump -U postgres matte | gzip > $BACKUP_DIR/matte_db_$DATE.sql.gz
+docker exec postgres-container pg_dump -U postgres mutte | gzip > $BACKUP_DIR/mutte_db_$DATE.sql.gz
 
 # Backup logs
-tar -czf $BACKUP_DIR/matte_logs_$DATE.tar.gz logs/
+tar -czf $BACKUP_DIR/mutte_logs_$DATE.tar.gz logs/
 
 # Keep only last 7 days
-find $BACKUP_DIR -name "matte_*" -mtime +7 -delete
+find $BACKUP_DIR -name "mutte_*" -mtime +7 -delete
 
 echo "Backup completed: $DATE"
 EOF
 
-chmod +x ~/apps/matte/backup.sh
+chmod +x ~/apps/mutte/backup.sh
 
 # Add to crontab (daily at 2 AM)
-(crontab -l 2>/dev/null; echo "0 2 * * * ~/apps/matte/backup.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 2 * * * ~/apps/mutte/backup.sh") | crontab -
 ```
 
 ---
@@ -512,7 +512,7 @@ docker ps | grep postgres
 docker exec postgres-container psql -U postgres -c "SELECT version();"
 
 # Verify DATABASE_URL in .env
-# Should be: postgresql://user:pass@172.17.0.1:5432/matte
+# Should be: postgresql://user:pass@172.17.0.1:5432/mutte
 # Or use container name if on same Docker network
 ```
 
@@ -527,14 +527,14 @@ sudo ss -tulpn | grep 3001
 # Change PORT in .env to another available port (e.g., 3002, 3003)
 ```
 
-### Issue: Traefik not routing to MaTTE
+### Issue: Traefik not routing to MuTTE
 
 ```bash
 # Check Traefik logs
 docker logs traefik
 
 # Verify labels on container
-docker inspect matte-api | grep -A 10 Labels
+docker inspect mutte-api | grep -A 10 Labels
 
 # Check Traefik dashboard (if enabled)
 # Usually at: http://your-server:8082
@@ -544,7 +544,7 @@ docker inspect matte-api | grep -A 10 Labels
 
 ```bash
 # Check logs for SMTP errors
-docker logs matte-api | grep -i smtp
+docker logs mutte-api | grep -i smtp
 
 # Common issues:
 # - Invalid SMTP credentials
@@ -559,16 +559,16 @@ telnet smtp.gmail.com 587
 
 ```bash
 # Check container stats
-docker stats matte-api
+docker stats mutte-api
 
 # Restart container
-docker restart matte-api
+docker restart mutte-api
 
 # For PM2
-pm2 restart matte-api
+pm2 restart mutte-api
 
 # Set memory limits in docker-compose
-# Add under matte-api service:
+# Add under mutte-api service:
 #   deploy:
 #     resources:
 #       limits:
@@ -580,35 +580,35 @@ pm2 restart matte-api
 ## 📝 Quick Reference
 
 ### Important Files
-- `~/apps/matte/.env` - Environment configuration
-- `~/apps/matte/logs/` - Application logs
-- `/etc/traefik/dynamic/matte.yml` - Traefik config (if using file-based)
+- `~/apps/mutte/.env` - Environment configuration
+- `~/apps/mutte/logs/` - Application logs
+- `/etc/traefik/dynamic/mutte.yml` - Traefik config (if using file-based)
 
 ### Common Commands
 
 ```bash
 # Start service
-docker start matte-api
-pm2 start matte-api
+docker start mutte-api
+pm2 start mutte-api
 
 # Stop service
-docker stop matte-api
-pm2 stop matte-api
+docker stop mutte-api
+pm2 stop mutte-api
 
 # Restart service
-docker restart matte-api
-pm2 restart matte-api
+docker restart mutte-api
+pm2 restart mutte-api
 
 # View logs
-docker logs -f matte-api
-pm2 logs matte-api
+docker logs -f mutte-api
+pm2 logs mutte-api
 
 # Check status
-docker ps | grep matte
+docker ps | grep mutte
 pm2 status
 
 # Shell into container
-docker exec -it matte-api sh
+docker exec -it mutte-api sh
 ```
 
 ### API Endpoints
@@ -622,14 +622,14 @@ docker exec -it matte-api sh
 ### Default Credentials to Change
 - `ENCRYPTION_KEY` in `.env`
 - `ADMIN_API_KEY` in `.env`
-- PostgreSQL password for `matte_app` user
+- PostgreSQL password for `mutte_app` user
 
 ---
 
 ## ✅ Post-Deployment Checklist
 
 - [ ] Server has Node.js 20+
-- [ ] PostgreSQL database `matte` created
+- [ ] PostgreSQL database `mutte` created
 - [ ] Database schema applied
 - [ ] `.env` file configured with secure keys
 - [ ] Application running (Docker or PM2)
@@ -647,12 +647,12 @@ docker exec -it matte-api sh
 
 ## 🎯 Next Steps
 
-1. **Choose a domain**: `matte.yourdomain.com` or path-based routing
+1. **Choose a domain**: `mutte.yourdomain.com` or path-based routing
 2. **Update DNS**: Point subdomain to your server IP
 3. **Deploy**: Follow steps 1-7 above
 4. **Configure Traefik**: Use Method 1 or 2
 5. **Test**: Send test emails
-6. **Integrate**: Update your applications to use MaTTE API
+6. **Integrate**: Update your applications to use MuTTE API
 7. **Monitor**: Check logs and email delivery
 
 ---
@@ -660,7 +660,7 @@ docker exec -it matte-api sh
 ## 📞 Support
 
 For issues or questions:
-1. Check application logs: `docker logs matte-api`
+1. Check application logs: `docker logs mutte-api`
 2. Check database connectivity
 3. Verify Traefik routing configuration
 4. Review security settings and credentials

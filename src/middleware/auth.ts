@@ -58,8 +58,8 @@ export const authenticateAdmin = async (
       throw new AppError('Admin key is required', 401);
     }
 
-    // Bypass TypeScript issues for now - will be fixed during final testing
-    const adminEnvKey = 'dev-admin-key'; // Default for development
+    // Use environment variable or default for development
+    const adminEnvKey = process.env.ADMIN_API_KEY || 'dev-admin-key';
     
     if (adminKey !== adminEnvKey) {
       throw new AppError('Invalid admin key', 401);

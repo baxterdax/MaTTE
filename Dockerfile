@@ -38,7 +38,7 @@ RUN apk add --no-cache dumb-init
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S matte -u 1001
+    adduser -S mutte -u 1001
 
 # Set working directory
 WORKDIR /app
@@ -49,10 +49,10 @@ COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/db ./db
 
 # Create logs directory
-RUN mkdir -p logs && chown -R matte:nodejs logs
+RUN mkdir -p logs && chown -R mutte:nodejs logs
 
 # Switch to non-root user
-USER matte
+USER mutte
 
 # Expose port
 EXPOSE 3000

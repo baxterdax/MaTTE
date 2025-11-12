@@ -45,8 +45,8 @@ docker-compose logs -f api
 npm install
 
 # 2. Setup database
-createdb mattedb
-psql mattedb < db/schema.sql
+createdb muttedb
+psql muttedb < db/schema.sql
 
 # 3. Configure environment
 cp .env.example .env
@@ -65,7 +65,7 @@ npm run dev
 ### 2. Environment Variables
 Required in your `.env` file:
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/mattedb
+DATABASE_URL=postgresql://user:password@localhost:5432/muttedb
 ENCRYPTION_KEY=your_32_character_encryption_key_here
 ADMIN_API_KEY=your_admin_key_here
 ```
